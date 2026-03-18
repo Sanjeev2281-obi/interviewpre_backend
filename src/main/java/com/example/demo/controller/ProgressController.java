@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.DashboardStatsDto;
 import com.example.demo.dto.ToggleSolvedRequest;
+import com.example.demo.entity.ResumeReview;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtil;
@@ -53,4 +54,5 @@ public class ProgressController {
             "problemId", request.getProblemId()
         ));
     }
+  
 }

@@ -2,10 +2,13 @@ package com.example.demo.service;
 
 import com.example.demo.dto.DashboardStatsDto;
 import com.example.demo.dto.ToggleSolvedRequest;
+import com.example.demo.entity.ResumeReview;
 import com.example.demo.entity.UserProgress;
+import com.example.demo.repository.ResumeReviewRepository;
 import com.example.demo.repository.UserProgressRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -17,9 +20,12 @@ public class ProgressService {
 
     private final UserProgressRepository progressRepository;
 
-    public ProgressService(UserProgressRepository progressRepository) {
+private final ResumeReviewRepository resumeReviewRepository;
+    public ProgressService(UserProgressRepository progressRepository, ResumeReviewRepository resumeReviewRepository) {
         this.progressRepository = progressRepository;
+        this.resumeReviewRepository = resumeReviewRepository;
     }
+
 
     @Transactional
     public boolean toggleSolved(Long userId, ToggleSolvedRequest req) {
@@ -69,11 +75,12 @@ public class ProgressService {
             .collect(Collectors.toList());
         stats.setRecentProblems(recent);
 
-        stats.setStreak(calculateStreak(all));
-        stats.setMockInterviews(0);
-        stats.setResumeScore(null);
-
-        return stats;
+         stats.setStreak(calculateStreak(all));
+    stats.setMockInterviews(0);
+   
+    stats.setResumeScore(getLatestResumeScore(userId));  // was hardcoded null
+    
+    return stats;
     }
 
     private int calculateStreak(List<UserProgress> all) {
@@ -101,4 +108,19 @@ public class ProgressService {
         }
         return streak;
     }
+  
+
+
+// Save or update resume score
+public ResumeReview saveResumeScore(Long userId, Integer score) {
+    ResumeReview review = new ResumeReview(userId, score);
+    return resumeReviewRepository.save(review);
+}
+
+// Get latest resume score
+public Integer getLatestResumeScore(Long userId) {
+    return resumeReviewRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
+        .map(ResumeReview::getScore)
+        .orElse(null);
+}
 }

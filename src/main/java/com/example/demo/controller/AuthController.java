@@ -37,4 +37,8 @@ public class AuthController {
         );
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/me")
+    public ResponseEntity<?> me(@RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok(authService.getCurrentUser(token));
+    }
 }

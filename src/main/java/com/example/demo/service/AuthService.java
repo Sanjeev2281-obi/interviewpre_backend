@@ -59,4 +59,12 @@ public class AuthService {
             new AuthResponse.UserDto(user.getId(), user.getName(), user.getEmail(), user.getRole())
         );
     }
+    public User getCurrentUser(String token) {
+
+    String jwt = token.replace("Bearer ", "");
+    String email = jwtUtil.extractEmail(jwt);
+
+    return userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+}
 }
