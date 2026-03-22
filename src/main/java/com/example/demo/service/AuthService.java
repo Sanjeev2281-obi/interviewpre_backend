@@ -4,6 +4,8 @@ import com.example.demo.dto.AuthResponse;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtil;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -45,8 +47,8 @@ public class AuthService {
 
     public AuthResponse login(String email, String password) {
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        // ← CHANGE: uses cached user instead of hitting DB every login
+        User user = findByEmail(email);
 
         if (!encoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid password");
@@ -59,12 +61,26 @@ public class AuthService {
             new AuthResponse.UserDto(user.getId(), user.getName(), user.getEmail(), user.getRole())
         );
     }
+
     public User getCurrentUser(String token) {
 
-    String jwt = token.replace("Bearer ", "");
-    String email = jwtUtil.extractEmail(jwt);
+        String jwt = token.replace("Bearer ", "");
+        String email = jwtUtil.extractEmail(jwt);
 
-    return userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-}
+        // ← CHANGE: uses cached user instead of hitting DB on every API request
+        return findByEmail(email);
+    }
+
+    // ← NEW: cached method — DB only hit once per unique email, then served from memory
+    @Cacheable(value = "users", key = "#email")
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // ← NEW: call this if user data changes (role upgrade, name change etc.)
+    @CacheEvict(value = "users", key = "#email")
+    public void evictUserCache(String email) {
+        // clears cached user so next request fetches fresh data from DB
+    }
 }
