@@ -1,8 +1,7 @@
 package com.example.demo.controller;
-import com.example.demo.dto.ToggleSolvedRequest;
 import com.example.demo.entity.ResumeReview;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.repository.ResumeReviewRepository;
+
 import com.example.demo.service.ProgressService;
 import com.example.demo.security.JwtUtil;
 import org.springframework.http.ResponseEntity;

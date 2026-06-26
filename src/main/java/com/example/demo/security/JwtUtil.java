@@ -2,6 +2,7 @@ package com.example.demo.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -10,11 +11,11 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // ✅ Fixed secret key — hardcoded, never changes on restart
-    private static final String SECRET = "interviewprep2026secretkeyforjwtauthentication";
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     private Key getKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     private final long EXPIRY = 1000L * 60 * 60 * 24 * 7; // 7 days

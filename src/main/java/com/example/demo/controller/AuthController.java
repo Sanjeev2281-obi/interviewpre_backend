@@ -3,18 +3,17 @@ package com.example.demo.controller;
 import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RegisterRequest;
+import com.example.demo.entity.User;
 import com.example.demo.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-
 public class AuthController {
 
     private final AuthService authService;
 
-    // ✅ Manual constructor — no Lombok needed
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
@@ -37,8 +36,19 @@ public class AuthController {
         );
         return ResponseEntity.ok(response);
     }
+
+    // ✅ Single /me endpoint — handles both old me() and new getMe() calls
     @GetMapping("/me")
-    public ResponseEntity<?> me(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok(authService.getCurrentUser(token));
+    public ResponseEntity<AuthResponse.UserDto> me(
+            @RequestHeader("Authorization") String authHeader) {
+        User user = authService.getCurrentUser(authHeader);
+        return ResponseEntity.ok(
+            new AuthResponse.UserDto(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole()
+            )
+        );
     }
 }

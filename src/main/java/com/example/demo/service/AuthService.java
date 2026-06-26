@@ -83,4 +83,12 @@ public class AuthService {
     public void evictUserCache(String email) {
         // clears cached user so next request fetches fresh data from DB
     }
+    @CacheEvict(value = "users", key = "#email")
+    public void upgradeUserToPro(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setRole("PRO");
+        userRepository.save(user);
+    }
 }
